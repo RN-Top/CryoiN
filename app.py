@@ -385,7 +385,7 @@ with col_intel:
                     f"Deliver concise, intriguing, and precise observations."
                 )
                 res = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=[prompt, query]
+                    model="gemini-2.0-flash", contents=[prompt, query]
                 )
                 st.markdown(res.text)
                 st.session_state.messages.append({"role": "assistant", "content": res.text})
