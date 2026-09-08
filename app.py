@@ -7,10 +7,10 @@ import pandas as pd
 import streamlit as st
 
 # ---------------------------------------------------------
-# Page Setup & Aesthetic Styling
+# Page Setup & Dark Cartographic Styling
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="CRYOIN | Eyerin View 13-Node Planar Array",
+    page_title="CRYOIN | 13-Node Planar Projection Deck",
     page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -33,17 +33,18 @@ st.markdown(
 )
 
 # ---------------------------------------------------------
-# API Initialization
+# API Initialization & Secrets Verification
 # ---------------------------------------------------------
 api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
 
 if not api_key:
     st.error(
-        "Missing GEMINI_API_KEY. Configure it in your Streamlit Cloud app settings under Secrets."
+        "Missing GEMINI_API_KEY. Add it to Streamlit Cloud under Settings -> Secrets."
     )
     st.stop()
 
-client = genai.Client(api_key=api_key)
+# Initialize Google GenAI client
+client = genai.Client(api_key=api_key.strip())
 
 # ---------------------------------------------------------
 # 13 Nodes: Sophia Center + 12 Outer Stations
@@ -189,19 +190,19 @@ show_field_wave = st.sidebar.checkbox("Simulate Magnetic Radial Spiral", value=T
 transit_speed = st.sidebar.slider("Array Cycle Cadence (hours)", 1, 24, 6)
 
 # ---------------------------------------------------------
-# Calculations & Real-time Metrics
+# Metrics HUD
 # ---------------------------------------------------------
 now_utc = datetime.utcnow()
 sim_pulse_phase = (now_utc.minute * 60 + now_utc.second) / 3600.0 * 2 * np.pi
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Station Focus", f"[{selected_node['id']}] {selected_node['name'].split()[0]}")
-m2.metric("Radius / Polar Distance", f"{selected_node['r']:.2f} R")
+m2.metric("Radius Distance", f"{selected_node['r']:.2f} R")
 m3.metric("Azimuth Vector", f"{selected_node['theta']:.1f}°")
 m4.metric("Harmonic Resonance", f"{selected_node['freq']} Hz")
 
 # ---------------------------------------------------------
-# Two-Column Layout: Visual Cartography vs Telemetry & Intel
+# Visual Display vs Data Telemetry
 # ---------------------------------------------------------
 col_deck, col_intel = st.columns([1.35, 1.0], gap="medium")
 
@@ -212,6 +213,7 @@ with col_deck:
     fig.patch.set_facecolor("#0b0e14")
     ax.set_facecolor("#111622")
 
+    # Concentric distance rings
     for r_ring in [0.25, 0.50, 0.75, 1.00]:
         ax.plot(
             np.linspace(0, 2 * np.pi, 300),
@@ -222,6 +224,7 @@ with col_deck:
             zorder=1,
         )
 
+    # Cryoin Outer Rim Perimeter
     ax.plot(
         np.linspace(0, 2 * np.pi, 500),
         [1.0] * 500,
@@ -232,6 +235,7 @@ with col_deck:
         zorder=2,
     )
 
+    # Simulated Magnetic Spiral Flow
     if show_field_wave:
         spiral_theta = np.linspace(0, 4 * np.pi, 400)
         spiral_r = np.linspace(0.02, 0.98, 400)
@@ -246,11 +250,13 @@ with col_deck:
             zorder=2,
         )
 
+    # Rays connecting Sophia (Node 0) to outer stations
     if show_rays:
         for n in NODES[1:]:
             th = np.radians(n["theta"])
             ax.plot([0, th], [0, n["r"]], color="#58a6ff", alpha=0.18, linewidth=1.0, zorder=2)
 
+    # Highlight active node ray
     if selected_node["id"] != 0:
         sel_th = np.radians(selected_node["theta"])
         ax.plot(
@@ -262,6 +268,7 @@ with col_deck:
             zorder=3,
         )
 
+    # Harmonic Triad Geometry
     if show_resonance and selected_node["id"] != 0:
         triad_1 = NODES[(selected_node["id"] + 4) % 12 or 12]
         triad_2 = NODES[(selected_node["id"] + 8) % 12 or 12]
@@ -282,6 +289,7 @@ with col_deck:
             zorder=3,
         )
 
+    # Draw all 13 stations
     for n in NODES:
         th = np.radians(n["theta"])
         is_sel = n["id"] == selected_id
@@ -319,8 +327,7 @@ with col_deck:
 
     st.pyplot(fig)
     st.caption(
-        f"**Locked Node Matrix:** [{selected_node['id']}] {selected_node['name']} — "
-        f"*{selected_node['feature']}*"
+        f"**Locked Node:** [{selected_node['id']}] {selected_node['name']} — *{selected_node['feature']}*"
     )
 
 with col_intel:
@@ -375,14 +382,26 @@ with col_intel:
                     f"vibrating at {selected_node['freq']} Hz. "
                     f"Deliver concise, intriguing, and precise observations."
                 )
-                try:
-                    res = client.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=[prompt, query],
-                    )
-                    reply_text = res.text
-                except Exception as e:
-                    reply_text = f"⚠️ **API Error Details:**\n```\n{e}\n```"
+
+                # Robust model cascading to avoid 404 version mismatch
+                candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+                reply_text = None
+                last_err = None
+
+                for target_model in candidate_models:
+                    try:
+                        res = client.models.generate_content(
+                            model=target_model,
+                            contents=[prompt, query],
+                        )
+                        reply_text = res.text
+                        break
+                    except Exception as err:
+                        last_err = err
+                        continue
+
+                if not reply_text:
+                    reply_text = f"⚠️ **API Connection Error:**\n```\n{last_err}\n```"
 
                 st.markdown(reply_text)
                 st.session_state.messages.append({"role": "assistant", "content": reply_text})
