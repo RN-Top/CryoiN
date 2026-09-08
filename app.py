@@ -10,7 +10,7 @@ import streamlit as st
 # Page Setup & Aesthetic Styling
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Eyerin View & Cryoin | 13-Node Planar Array",
+    page_title="CRYOIN | Eyerin View 13-Node Planar Array",
     page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -171,7 +171,7 @@ NODES = [
 # ---------------------------------------------------------
 # Sidebar Controls & Cartographic Overlay Options
 # ---------------------------------------------------------
-st.sidebar.title("🧭 Apex Earth Deck")
+st.sidebar.title("🧭 CRYOIN Deck")
 st.sidebar.caption("Planar 1500s Azimuthal Array")
 
 selected_id = st.sidebar.selectbox(
@@ -349,7 +349,7 @@ with col_intel:
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": f"Eyerin-Cryoin array synchronized. Sophia core anchoring {selected_node['name']}.",
+                "content": f"CRYOIN array synchronized. Sophia core anchoring {selected_node['name']}.",
             }
         ]
 
@@ -367,7 +367,7 @@ with col_intel:
                 st.markdown(query)
             with st.chat_message("assistant"):
                 prompt = (
-                    f"You are the cartographic and orbital intelligence officer for the Eyerin-Cryoin array, "
+                    f"You are the cartographic and orbital intelligence officer for the CRYOIN array, "
                     f"modeled on a 1500s azimuthal equidistant polar disc. "
                     f"Central Hub: Sophia (Node 0). Outer Perimeter: Cryoin Antarctica (Node 12). "
                     f"Currently focused target: [{selected_node['id']}] {selected_node['name']} "
@@ -377,7 +377,7 @@ with col_intel:
                 )
                 try:
                     res = client.models.generate_content(
-                        model="gemini-1.5-flash",
+                        model="gemini-2.0-flash",
                         contents=[prompt, query],
                     )
                     reply_text = res.text
