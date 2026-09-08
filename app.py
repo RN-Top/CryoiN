@@ -1,5 +1,5 @@
 query = st.chat_input("Inquire about harmonic intersections, alignments, or node transits...")
-    if query:
+ if query:
         st.session_state.messages.append({"role": "user", "content": query})
         with chat_box:
             with st.chat_message("user"):
