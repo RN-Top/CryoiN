@@ -1,15 +1,55 @@
-# Byte-compiled / cache files
+# Byte-compiled / cache
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
 
 # Virtual environments
 venv/
 .venv/
 env/
+ENV/
 
-# Streamlit private secrets file
+# Environment / secrets
+.env
+.env.*
+!.env.example
 .streamlit/secrets.toml
 
-# Operating system files
+# Streamlit / local runtime
+.streamlit/machine_id
+*.log
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Local dumps / keys
+*.pem
+*.key
+credentials.json
+service-account*.json
